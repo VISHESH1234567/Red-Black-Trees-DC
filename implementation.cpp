@@ -64,7 +64,7 @@ private:
 			}
 			else{
 				if (address->parent==address->parent->parent->left){
-					if (address->value>address->parent->value){
+					if (address==address->parent->right){
 						left_rotate(address->parent);
 						address = address->left;
 					}
@@ -74,7 +74,7 @@ private:
 					break;
 				}
 				else{
-					if (address->value<=address->parent->value){
+					if (address==address->parent->left){
 						right_rotate(address->parent);
 						address = address->right;
 					}
@@ -88,43 +88,6 @@ private:
 		}
 		root->isred = false;
 		return 0;
-	}
-public:
-	redblack_tree(){
-		root = nullptr;
-	}
-	int insert(int n){
-		if (root==nullptr){root = new node(n,false,nullptr); return 0;}
-		node* temp = root;
-		bool flag = true;
-		while (flag){
-			if (n>temp->value){
-				if (temp->right==nullptr){
-					temp->right = new node(n, true, temp);
-					flag = false;
-				}
-				temp = temp->right;
-			}	
-			else{
-				if (temp->left==nullptr){
-					temp->left = new node(n,true,temp);
-					flag = false;
-				}
-				temp = temp->left;
-			}
-		}
-		correct(temp);
-		return 0;
-	}
-	int search(int n){
-		node* temp = root;
-		while(temp!=nullptr){
-			if (temp->value==n){cout<<1<<'\n';return 1;}
-			else if (n>temp->value) temp = temp->right;
-			else temp = temp->left;
-		}
-		cout<<-1<<'\n';
-		return -1;
 	}
 
 	int deletefix(node* dbparent,bool rights){
@@ -187,6 +150,55 @@ public:
 		root->isred = false;
 		return 0;
 	}
+
+	int prerec(node* ptr){
+		if (ptr==nullptr) return 0;
+		cout<<ptr->value<<' ';
+		if (ptr->isred) cout<<"R ";
+		prerec(ptr->left);
+		prerec(ptr->right);
+		return 0;
+	}
+public:
+	redblack_tree(){
+		root = nullptr;
+	}
+	int insert(int n){
+		if (root==nullptr){root = new node(n,false,nullptr); return 0;}
+		node* temp = root;
+		bool flag = true;
+		while (flag){
+			if (n>temp->value){
+				if (temp->right==nullptr){
+					temp->right = new node(n, true, temp);
+					flag = false;
+				}
+				temp = temp->right;
+			}	
+			else if (n<temp->value){
+				if (temp->left==nullptr){
+					temp->left = new node(n,true,temp);
+					flag = false;
+				}
+				temp = temp->left;
+			}
+			else return 0;
+		}
+		correct(temp);
+		return 0;
+	}
+	int search(int n){
+		node* temp = root;
+		while(temp!=nullptr){
+			if (temp->value==n){cout<<1<<'\n';return 1;}
+			else if (n>temp->value) temp = temp->right;
+			else temp = temp->left;
+		}
+		cout<<-1<<'\n';
+		return -1;
+	}
+
+	
 	int deletenode(int n){
 		node* temp = root;
 		bool rights=true;
@@ -230,11 +242,6 @@ public:
 						temporary = temporary->left;
 					}
 					temp->value = temporary->value;
-					if (temporary->parent==temp){
-						temp->right = temporary->right;
-						delete temporary;
-						return 0;
-					}
 					if (temporary->right!=nullptr){
 						temporary->value = temporary->right->value;
 						delete temporary->right;
@@ -244,27 +251,28 @@ public:
 					if (temporary->isred){
 						node* p = temporary->parent;
 						delete temporary;
-						p->left = nullptr;
+						if (p==temp) p->right = nullptr;
+						else p->left = nullptr;
 						return 0;
 					}
-					temporary->parent->left = nullptr;
-					node* p = temporary->parent;
-					delete temporary;
-					deletefix(p,false);
+					if (temporary->parent==temp){
+						temp->right = nullptr;
+						delete temporary;
+						deletefix(temp,true);
+					}
+					else{
+						temporary->parent->left = nullptr;
+						node* p = temporary->parent;
+						delete temporary;
+						deletefix(p,false);
+					}
+					return 0;
 				}
 			}
 		}
 		return 0;
 	}
 
-	int prerec(node* ptr){
-		if (ptr==nullptr) return 0;
-		cout<<ptr->value<<' ';
-		if (ptr->isred) cout<<"R ";
-		prerec(ptr->left);
-		prerec(ptr->right);
-		return 0;
-	}
 	int preorder(){
 		prerec(root); cout<<'\n';
 		return 0;
@@ -272,5 +280,24 @@ public:
 };
 
 int main(){
+	redblack_tree rbt1;
+	rbt1.insert(50);
+	rbt1.insert(70);
+	rbt1.insert(60);
+	rbt1.insert(20);
+	rbt1.insert(10);
+	rbt1.insert(90);
+	rbt1.insert(100);
+	rbt1.insert(40);
+	rbt1.insert(30);
+	rbt1.insert(80);
+	rbt1.insert(55);
+	rbt1.deletenode(55);
+	rbt1.deletenode(40);
+	//rbt1.deletenode(30);
+	rbt1.preorder();
+	//rbt1.deletenode(80);
+	//rbt1.preorder();
+	rbt1.search(60);
 	return 0;
 }	
